@@ -2,19 +2,15 @@ const logHours = require('../functions/log_hours.js')
 
 module.exports = async function revealPuzzle(channel, db, puzzle_id) {
 	const puzzles = db.collection("testCollection0")
-
-	let all_puzzles = await puzzles.find()
-	if (all_puzzles.toArray().length == puzzle_id) {
+	const current_puzzle = await puzzles.findOne({id: puzzle_id})
+	if (current_puzzle == null) {
 		started = false
 		console.log("Looks like all the puzzles have been solved! Shutting down the bot in a few seconds...")
 		setTimeout(function() {process.exit(1)}, 3000)
 		return console.log("...")
 	}
-
-	const current_puzzle = await puzzles.findOne({id: puzzle_id})
 	const hints = current_puzzle.hints
 
-	
 	console.log(`\n(${logHours()}) Revealing puzzle ${puzzle_id + 1}!\n`)
 
 	let exp_date = new Date()
@@ -35,8 +31,8 @@ module.exports = async function revealPuzzle(channel, db, puzzle_id) {
 		setTimeout(async function() {
 			let updated_puzzle = await puzzles.findOne({id: puzzle_id})
 			if (!updated_puzzle.solver) {
-				channel.send(`${phrased_time} left`)
-				console.log(`(${logHours()}) A reminder has been sent, ${phrased_time} left to solve puzzle ${puzzle_id + 1}`)
+				channel.send(`it has been ${phrased_time}`)
+				console.log(`(${logHours()}) A reminder has been sent after ${phrased_time} for puzzle ${puzzle_id + 1}`)
 			} else {
 				console.log(`\n(${logHours()}) No reminder has been sent for puzzle ${puzzle_id + 1}, as it has already been solved on ${updated_puzzle.solved_date}\n`)
 			}
@@ -45,13 +41,13 @@ module.exports = async function revealPuzzle(channel, db, puzzle_id) {
 
 	hints.forEach((hint) => {
 		let hint_time_ms = hint.reveal_in_minutes_after_reveal * 60000
-		let phrased_hint_time = timePhrasing(hint.reveal_in_minutes_after_reveal * 60000)
+		let phrased_hint_time = timePhrasing(hint.reveal_in_minutes_after_reveal)
 		console.log(`(${logHours()}) A hint has been set to be sent in ${phrased_hint_time}`)
 		setTimeout(async function() {
 			let updated_puzzle = await puzzles.findOne({id: puzzle_id})
 			if (!updated_puzzle.solver) {
 				channel.send(hint.text)
-				console.log(`(${logHours()}) ${phrased_hint_time} left, a hint has been sent`)
+				console.log(`(${logHours()}) ${phrased_hint_time} spent, a hint has been sent`)
 			} else {
 				console.log(`\n(${logHours()}) No hint has been sent for puzzle ${puzzle_id + 1}, as it has already been solved on ${updated_puzzle.solved_date}\n`)
 			}

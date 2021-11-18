@@ -26,13 +26,13 @@ module.exports = async function revealPuzzle(channel, db, puzzle_id) {
 	let reminder_times = [ms-(ms/2), ms-(ms/5)]
 
 	reminder_times.forEach((time) => {
-		let phrased_time = timePhrasing(time / 60000)
-		console.log(`(${logHours()}) A reminder has been set to be sent in ${phrased_time}`)
+		let phrased_time = timePhrasing((ms / 60000) - (time / 60000))
+		console.log(`(${logHours()}) A reminder has been set to be sent once ${phrased_time} are left`)
 		setTimeout(async function() {
 			let updated_puzzle = await puzzles.findOne({id: puzzle_id})
 			if (!updated_puzzle.solver) {
-				channel.send(`it has been ${phrased_time}`)
-				console.log(`(${logHours()}) A reminder has been sent after ${phrased_time} for puzzle ${puzzle_id + 1}`)
+				channel.send(`${phrased_time} left`)
+				console.log(`(${logHours()}) A reminder has been sent for puzzle ${puzzle_id + 1} as the time remaining is ${phrased_time}`)
 			} else {
 				console.log(`\n(${logHours()}) No reminder has been sent for puzzle ${puzzle_id + 1}, as it has already been solved on ${updated_puzzle.solved_date}\n`)
 			}
@@ -41,19 +41,20 @@ module.exports = async function revealPuzzle(channel, db, puzzle_id) {
 
 	hints.forEach((hint) => {
 		let hint_time_ms = hint.reveal_in_minutes_after_reveal * 60000
-		let phrased_hint_time = timePhrasing(hint.reveal_in_minutes_after_reveal)
-		console.log(`(${logHours()}) A hint has been set to be sent in ${phrased_hint_time}`)
+		let phrased_hint_time = timePhrasing((ms / 60000) - hint.reveal_in_minutes_after_reveal)
+		console.log(`(${logHours()}) A hint has been set to be sent once ${phrased_hint_time} are left`)
 		setTimeout(async function() {
 			let updated_puzzle = await puzzles.findOne({id: puzzle_id})
 			if (!updated_puzzle.solver) {
 				channel.send(hint.text)
-				console.log(`(${logHours()}) ${phrased_hint_time} spent, a hint has been sent`)
+				console.log(`(${logHours()}) ${phrased_hint_time} left, a hint has been sent`)
 			} else {
 				console.log(`\n(${logHours()}) No hint has been sent for puzzle ${puzzle_id + 1}, as it has already been solved on ${updated_puzzle.solved_date}\n`)
 			}
 		}, hint_time_ms)
 	})
 
+	console.log(`(${logHours()}) Thinking time will begin in ${timePhrasing(ms / 60000)}`)
 	setTimeout(async function() {
 		let updated_puzzle = await puzzles.findOne({id: puzzle_id})
 		if (!updated_puzzle.solver) {
@@ -64,10 +65,10 @@ module.exports = async function revealPuzzle(channel, db, puzzle_id) {
 			setTimeout(async function() {
 				thinking_time = false
 				channel.send(`you can give answers again, you need to solve the puzzle to proceed`)
-				console.log(`\n(${logHours()}) Puzzle ${puzzle_id + 1}'s thinking time has expired, exiting "thinking time"\n`)
+				console.log(`\n(${logHours()}) Puzzle ${puzzle_id + 1}'s thinking time has expired, exiting "thinking time"`)
 			}, 3600000)
 		} else {
-			console.log(`\n(${logHours()}) Puzzle ${puzzle_id + 1} will not enter thinking time as it has already been solved\n`)
+			console.log(`(${logHours()}) Puzzle ${puzzle_id + 1} will not enter thinking time as it has already been solved\n`)
 		}
 	}, ms)
 
@@ -78,7 +79,7 @@ function timePhrasing(minutes) {
 	minutes = Number(minutes)
 	minutes = Number(minutes.toFixed(1))
 	if (minutes < 60) {return `${minutes} minute${minutes >= 2 ? "s" : ""}`}
-	if (minutes % 60) {return `${minutes / 60} hours`}
+	if (!(minutes % 60)) {return `${minutes / 60} hours`}
 
 	let new_hours = 0
 	let new_minutes = minutes

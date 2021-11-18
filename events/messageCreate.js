@@ -51,12 +51,12 @@ module.exports = {
 			let current_puzzle_id = tracking[0].count
 
 			started = true
-			console.log(`\n${message.author.tag} has started the puzzle reveal period, with puzzle ${current_puzzle_id + 1}\n`)
+			console.log(`\n(${logHours()}) ${message.author.tag} has started the puzzle reveal period, with puzzle ${current_puzzle_id + 1}\n`)
 			revealPuzzle(message.guild.channels.cache.find(channel => channel.id == announcements_channel), db, current_puzzle_id)
 
 		// RESET TRACKING, REMOVE SOLVERS
 		} else if (!started && (message.author.id == host_id || message.author.id == programmer_id) && message.content.startsWith("_reset")) {
-			console.log(`\n${message.author.tag} is resetting progress...`)
+			console.log(`\n(${logHours()}) ${message.author.tag} is resetting progress...`)
 			const track_collection = await db.collection("track")
 			const tracking = await track_collection.find().toArray()
 			let track_object = tracking[0]._id
@@ -69,7 +69,8 @@ module.exports = {
 		
 		// ADD PUZZLE
 		} else if ((message.author.id == host_id || message.author.id == programmer_id) && message.content.startsWith("_add")) {
-			const p_args = message.content.split("/")
+			const p_args = message.content.split(";")
+			if (p_args.length < 6) {return message.reply(`Not enough arguments (\`${p_args.toString()}\`)`)}
 			const puzzles = db.collection("testCollection0")
 			let all_puzzles = await puzzles.find()
 			let all_puzzles_arr = await all_puzzles.toArray()
@@ -86,7 +87,6 @@ module.exports = {
 				solved_date: new Date("1898-12-31T23:50:39.000+00:00"),
 			}
 			let p_image = p_args[4] != "none" ? p_args[4] : ""
-			// _add/who's my waifu?/lain/180/none/do something~90&idk~45
 
 			const hints = p_args[5].split("&")
 			hints.forEach((hint) => {
@@ -110,7 +110,7 @@ url of the image: ${doc.image_url}
 hint: ${hint.text} (revealed after ${hint.reveal_in_minutes_after_reveal} minutes)`
 			})
 			message.reply(string_message)
-			console.log(`A puzzle has been added with the _id ${add_result.insertedId}`, doc)
+			console.log(`(${logHours()}) A puzzle has been added with the _id ${add_result.insertedId}`, doc)
 		}
 	}
 }

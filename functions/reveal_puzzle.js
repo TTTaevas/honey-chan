@@ -3,12 +3,22 @@ const logHours = require('../functions/log_hours.js')
 module.exports = async function revealPuzzle(channel, db, puzzle_id) {
 	const puzzles = db.collection("testCollection0")
 	const current_puzzle = await puzzles.findOne({id: puzzle_id})
+
 	if (current_puzzle == null) {
 		started = false
-		console.log("Looks like all the puzzles have been solved! Shutting down the bot in a few seconds...")
+		console.log("\nLooks like all the puzzles have been solved! Sending the final puzzle...")
+		await channel.send(`Well done on solving the final puzzle !
+...is what I would say if it was indeed the final one.
+You have just one last hurdle to go through.
+You have almost everything you need to discover the final answer, you just have to piece everything together with https://cdn.discordapp.com/attachments/913919739800203275/913920454832554064/heart.PNG 
+in the middle of it all. Everything should fit together quite nicely`)
+		await channel.send(`You'll also need this https://cdn.discordapp.com/attachments/913919739800203275/913919910952976405/decoder.PNG
+Exit your grey home and follow the dark path.`)
+		console.log("Final puzzle sent, shutting down the bot...")
 		setTimeout(function() {process.exit(1)}, 3000)
 		return console.log("...")
 	}
+
 	const hints = current_puzzle.hints
 
 	console.log(`\n(${logHours()}) Revealing puzzle ${puzzle_id + 1}!\n`)
@@ -79,7 +89,7 @@ function timePhrasing(minutes) {
 	minutes = Number(minutes)
 	minutes = Number(minutes.toFixed(1))
 	if (minutes < 60) {return `${minutes} minute${minutes >= 2 ? "s" : ""}`}
-	if (!(minutes % 60)) {return `${minutes / 60} hours`}
+	if (!(minutes % 60)) {return `${minutes / 60} hour`}
 
 	let new_hours = 0
 	let new_minutes = minutes

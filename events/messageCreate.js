@@ -1,6 +1,6 @@
 prefix = "_answer"
-announcements_channel = "909931933201481771"
-answers_channel = "909932040256905286"
+announcements_channel = "912293335086006292" // actual 912293335086006292 // test 909931933201481771
+answers_channel = "912292996815392768" // actual 912292996815392768 // test 909932040256905286
 
 host_id = "202908462722711552"
 programmer_id = "793902871619043400"
@@ -25,6 +25,7 @@ module.exports = {
 			const tracking = await db.collection("track").find().toArray()
 			let current_puzzle_id = tracking[0].count
 			let current_puzzle = await puzzles.findOne({id: current_puzzle_id})
+			current_puzzle.answer = current_puzzle.answer.toLowerCase()
 			let submitted_answer = message.content.slice(8).toLowerCase()
 			
 			if (submitted_answer == "penis") {message.react("🍆")}
